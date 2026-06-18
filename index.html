@@ -118,7 +118,7 @@ body{
   max-width:900px;
   margin:0 auto;
   display:grid;
-  grid-template-columns:1fr 220px 160px;
+  grid-template-columns:1fr 200px 180px 150px;
   gap:8px;
 }
 .search-inner input,
@@ -242,6 +242,20 @@ body{
   margin-bottom:4px;
 }
 
+.card-category{
+  display:inline-block;
+  font-size:.65rem;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--gold-dark);
+  background:rgba(197,165,90,.12);
+  border:1px solid rgba(197,165,90,.3);
+  border-radius:4px;
+  padding:1px 6px;
+  margin-bottom:6px;
+}
+
 .card-title{
   font-family:'Playfair Display',serif;
   font-size:15px;
@@ -342,6 +356,9 @@ body{
 }
 
 /* ── Responsive ── */
+@media(max-width:750px){
+  .search-inner{grid-template-columns:1fr 1fr}
+}
 @media(max-width:600px){
   .search-inner{grid-template-columns:1fr}
   .video-grid{grid-template-columns:1fr}
@@ -376,7 +393,7 @@ body{
 <!-- ── Hero ── -->
 <section class="hero">
   <h1>Horse Trainer Videos</h1>
-  <p class="hero-sub">Browse curated YouTube videos from respected horse trainers, clinicians, and performance horse programs. Search by trainer, title, or description and filter by channel.</p>
+  <p class="hero-sub">Browse curated YouTube videos from respected horse trainers, clinicians, and performance horse programs. Search by trainer, title, or description and filter by channel or training category.</p>
 </section>
 
 <!-- ── Search Controls ── -->
@@ -389,8 +406,11 @@ body{
       aria-label="Search videos"
       autocomplete="off"
     />
-    <select id="channelFilter" aria-label="Filter by channel">
+    <select id="channelFilter" aria-label="Filter by trainer / channel">
       <option value="">All Trainers / Channels</option>
+    </select>
+    <select id="categoryFilter" aria-label="Filter by training category">
+      <option value="">All Categories</option>
     </select>
     <select id="sortSelect" aria-label="Sort videos">
       <option value="newest">Newest First</option>
@@ -470,8 +490,8 @@ function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function initials(name) {
-  return (name||'HT').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+function titleCase(s) {
+  return (s||'').replace(/\b\w/g, c => c.toUpperCase());
 }
 
 /* ── Channel filter ── */
@@ -481,6 +501,17 @@ function buildChannelFilter() {
   channels.forEach(ch => {
     const opt = document.createElement('option');
     opt.value = ch; opt.textContent = ch;
+    sel.appendChild(opt);
+  });
+}
+
+/* ── Training Category filter ── */
+function buildCategoryFilter() {
+  const sel = document.getElementById('categoryFilter');
+  const cats = [...new Set(allVideos.map(v => v.training_category).filter(Boolean))].sort();
+  cats.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat; opt.textContent = titleCase(cat);
     sel.appendChild(opt);
   });
 }
@@ -523,6 +554,10 @@ function buildCard(v) {
     viewStr ? `<span>👁 ${esc(viewStr)}</span>` : '',
   ].filter(Boolean).join('');
 
+  const catBadge = v.training_category
+    ? `<span class="card-category">${esc(titleCase(v.training_category))}</span>`
+    : '';
+
   return `
     <article class="card">
       <a href="${url}" target="_blank" rel="noopener noreferrer" aria-label="Watch ${esc(v.title||'video')} on YouTube" tabindex="-1">
@@ -533,6 +568,7 @@ function buildCard(v) {
       </a>
       <div class="card-body">
         <div class="card-channel">${esc(v.channel||'Horse Trainer')}</div>
+        ${catBadge}
         <h2 class="card-title">${esc(v.title||'Untitled Video')}</h2>
         ${metaParts ? `<div class="card-meta">${metaParts}</div>` : ''}
         ${desc ? `<p class="card-desc">${desc}</p>` : ''}
@@ -543,26 +579,31 @@ function buildCard(v) {
 
 /* ── Render ── */
 function render() {
-  const grid    = document.getElementById('videoGrid');
-  const status  = document.getElementById('statusRow');
-  const hcount  = document.getElementById('headerCount');
-  const search  = document.getElementById('searchInput').value.trim().toLowerCase();
-  const channel = document.getElementById('channelFilter').value;
-  const sort    = document.getElementById('sortSelect').value;
+  const grid     = document.getElementById('videoGrid');
+  const status   = document.getElementById('statusRow');
+  const hcount   = document.getElementById('headerCount');
+  const search   = document.getElementById('searchInput').value.trim().toLowerCase();
+  const channel  = document.getElementById('channelFilter').value;
+  const category = document.getElementById('categoryFilter').value;
+  const sort     = document.getElementById('sortSelect').value;
 
   let list = allVideos.filter(v => {
-    const hay = `${v.channel} ${v.title} ${v.description}`.toLowerCase();
-    return (!search || hay.includes(search)) && (!channel || v.channel === channel);
+    const hay = `${v.channel} ${v.title} ${v.description} ${v.training_category}`.toLowerCase();
+    return (
+      (!search   || hay.includes(search)) &&
+      (!channel  || v.channel === channel) &&
+      (!category || v.training_category === category)
+    );
   });
   list = sortVideos(list, sort);
 
   const n = list.length;
-  const label = `${n.toLocaleString()} video${n===1?'':'s'}${search||channel?' found':''}`;
+  const label = `${n.toLocaleString()} video${n===1?'':'s'}${search||channel||category?' found':''}`;
   status.textContent  = n === 0 ? 'No videos match — try a different search or filter.' : label;
   hcount.textContent  = n === 0 ? '' : label;
 
   if (n === 0) {
-    grid.innerHTML = `<div class="empty"><strong>No Results</strong>Clear your search or choose a different channel filter.</div>`;
+    grid.innerHTML = `<div class="empty"><strong>No Results</strong>Clear your search or choose a different filter.</div>`;
     return;
   }
 
@@ -586,6 +627,7 @@ fetch(CSV_PATH)
   .then(text => {
     allVideos = parseCSV(text);
     buildChannelFilter();
+    buildCategoryFilter();
     render();
   })
   .catch(err => {
@@ -597,6 +639,7 @@ fetch(CSV_PATH)
 
 document.getElementById('searchInput').addEventListener('input', onSearch);
 document.getElementById('channelFilter').addEventListener('change', render);
+document.getElementById('categoryFilter').addEventListener('change', render);
 document.getElementById('sortSelect').addEventListener('change', render);
 </script>
 </body>
