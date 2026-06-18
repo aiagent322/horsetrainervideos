@@ -1,0 +1,6 @@
+# Redirect common typos / old paths
+/index.htm  /  301
+/home       /  301
+
+# 404 fallback — serve index for any unmatched path
+/*  /index.html  200
