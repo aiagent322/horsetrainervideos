@@ -415,7 +415,7 @@ body{
     <select id="sortSelect" aria-label="Sort videos">
       <option value="newest">Newest First</option>
       <option value="oldest">Oldest First</option>
-      <option value="views">Most Viewed</option>
+      <option value="views" selected>Most Viewed</option>
       <option value="az">Title A–Z</option>
     </select>
   </div>
@@ -523,7 +523,7 @@ function sortVideos(list, mode) {
     case 'oldest': return copy.sort((a,b) => (a.upload_date||'').localeCompare(b.upload_date||''));
     case 'views':  return copy.sort((a,b) => (parseInt(b.view_count,10)||0) - (parseInt(a.view_count,10)||0));
     case 'az':     return copy.sort((a,b) => (a.title||'').localeCompare(b.title||''));
-    default:       return copy.sort((a,b) => (b.upload_date||'').localeCompare(a.upload_date||''));
+    default:       return copy.sort((a,b) => (parseInt(b.view_count,10)||0) - (parseInt(a.view_count,10)||0));
   }
 }
 
