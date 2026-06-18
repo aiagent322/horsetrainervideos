@@ -69,7 +69,7 @@ body{
 .header-logo{width:32px;height:32px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .header-title{font-family:'Playfair Display',serif;color:#fff;font-size:14px;font-weight:700;letter-spacing:.5px;line-height:1.2}
 .header-title span{display:block;font-size:.7rem;color:rgba(255,255,255,.7);font-family:'Source Sans 3',sans-serif;font-weight:400;letter-spacing:2px;text-transform:uppercase}
-.header-count{color:var(--gold-light);font-size:.75rem;font-weight:600;letter-spacing:.5px;white-space:nowrap}
+.header-count{color:var(--gold-light);font-size:.75rem;font-weight:600;letter-spacing:.5px;white-space:nowrap;display:none}
 
 /* ── Hero — WGH gradient style ── */
 .hero{
@@ -108,24 +108,24 @@ body{
   margin:0 auto;
 }
 
-/* ── Search bar ── */
+/* ── Search bar — mobile first: 1 column stack ── */
 .search-wrap{
   background:var(--leather);
-  padding:12px 16px;
+  padding:10px 12px;
   border-bottom:2px solid rgba(197,165,90,.25);
 }
 .search-inner{
   max-width:900px;
   margin:0 auto;
   display:grid;
-  grid-template-columns:1fr 200px 180px 150px;
+  grid-template-columns:1fr;
   gap:8px;
 }
 .search-inner input,
 .search-inner select{
   font-family:'Source Sans 3',sans-serif;
-  font-size:14px;
-  padding:10px 13px;
+  font-size:16px; /* 16px prevents iOS zoom on focus */
+  padding:12px 14px;
   border:1.5px solid rgba(255,255,255,.2);
   border-radius:7px;
   background:rgba(255,255,255,.1);
@@ -133,7 +133,7 @@ body{
   width:100%;
   appearance:none;
   -webkit-appearance:none;
-  min-height:44px;
+  min-height:48px; /* larger tap target on mobile */
 }
 .search-inner input::placeholder{color:rgba(255,255,255,.5)}
 .search-inner select option{background:var(--leather-dark);color:#fff}
@@ -141,21 +141,21 @@ body{
 /* ── Status row ── */
 .status-row{
   max-width:900px;
-  margin:12px auto 0;
-  padding:0 16px;
+  margin:10px auto 0;
+  padding:0 14px;
   font-size:13px;
   color:var(--text-light);
   font-weight:600;
 }
 
-/* ── Grid ── */
+/* ── Grid — mobile: single column ── */
 .video-grid{
   max-width:900px;
-  margin:16px auto 60px;
-  padding:0 16px;
+  margin:14px auto 60px;
+  padding:0 12px;
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-  gap:16px;
+  grid-template-columns:1fr;
+  gap:14px;
 }
 
 /* ── Card — WGH card language ── */
@@ -355,17 +355,22 @@ body{
   to{opacity:1;transform:translateY(0)}
 }
 
-/* ── Responsive ── */
-@media(max-width:750px){
+/* ── Responsive — mobile first, scale up ── */
+
+/* Tablet: 600px+ — 2-column search, 2-column grid */
+@media(min-width:600px){
   .search-inner{grid-template-columns:1fr 1fr}
+  .video-grid{grid-template-columns:repeat(2,1fr);padding:0 16px;gap:16px}
+  .header-count{display:block}
 }
-@media(max-width:600px){
-  .search-inner{grid-template-columns:1fr}
-  .video-grid{grid-template-columns:1fr}
-  .header-count{display:none}
-}
-@media(max-width:479px){
-  .header-brand{display:none!important}
+
+/* Desktop: 900px+ — 4-column search, 3-column grid */
+@media(min-width:900px){
+  .search-wrap{padding:12px 16px}
+  .search-inner{grid-template-columns:1fr 200px 180px 150px}
+  .search-inner input,.search-inner select{font-size:14px;min-height:44px;padding:10px 13px}
+  .video-grid{grid-template-columns:repeat(3,1fr)}
+  .header-brand{display:flex}
 }
 @media(prefers-reduced-motion:reduce){
   .card,.card:hover,.thumb-wrap img,.btn-watch{transition:none}
